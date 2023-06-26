@@ -6,11 +6,14 @@ import Button from "@mui/material/Button";
 
 import styles from "./Login.module.scss";
 import {useForm} from "react-hook-form";
-import {useDispatch} from "react-redux";
-import {AppDispatch, loginUser} from "../../redux";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, loginUser, selectAuthData} from "../../redux";
+import {Navigate} from "react-router-dom";
 
 export const Login = () => {
     const dispatch = useDispatch<AppDispatch>()
+    const isAuth = !!useSelector(selectAuthData)
+    const err = useSelector(state => state)
     const {register, handleSubmit, setError, formState: {errors, isValid}} = useForm({
         defaultValues: {
             email: "",
@@ -19,10 +22,22 @@ export const Login = () => {
         mode: "onChange"
     })
 
-    const onSubmit = (data: {email: string, password: string}) => {
-        console.log(data)
-        dispatch(loginUser(data))
+    const onSubmit = async (submitData: { email: string, password: string }) => {
+        const data: any = await dispatch(loginUser(submitData))
+        if (!data.payload) {
+            return
+        }
+
+        if ("token" in data.payload) {
+            localStorage.setItem("token", data.payload.token)
+        }
     }
+
+    if (isAuth || localStorage.getItem("token")) {
+        return <Navigate to={"/"}/>
+    }
+
+    console.log(err)
 
     return (
         <Paper classes={{root: styles.root}}>
@@ -47,7 +62,7 @@ export const Login = () => {
                     helperText={errors.password?.message}
                     fullWidth
                 />
-                <Button size="large" variant="contained" fullWidth type="submit">
+                <Button disabled={!isValid} size="large" variant="contained" fullWidth type="submit">
                     Войти
                 </Button>
             </form>

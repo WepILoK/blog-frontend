@@ -7,11 +7,12 @@ import {Post} from '../../components/Post/Post';
 import {TagsBlock} from '../../components/TagsBlock/TagsBlock';
 import {CommentsBlock} from '../../components/CommentsBlock/CommentsBlock';
 import {useDispatch, useSelector} from "react-redux";
-import {AppDispatch, EnumStatus, fetchPosts, fetchTags, IPost, selectPostsData} from "../../redux";
+import {AppDispatch, EnumStatus, fetchPosts, fetchTags, IPost, selectPostsData, selectUserId} from "../../redux";
 
 export const Home = () => {
     const dispatch = useDispatch<AppDispatch>()
     const {posts, tags} = useSelector(selectPostsData)
+    const id = useSelector(selectUserId)
 
     const isPostsLoaded = posts.status === EnumStatus.LOADED
     const isTagsLoaded = tags.status === EnumStatus.LOADED
@@ -43,7 +44,7 @@ export const Home = () => {
                                     commentsCount={2}
                                     tags={item.tags}
                                     isLoading={false}
-                                    isEditable
+                                    isEditable={id === item.user._id}
                                 />
                             )
                             : <Post key={index} isLoading={true} />

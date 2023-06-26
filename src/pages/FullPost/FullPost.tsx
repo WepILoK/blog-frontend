@@ -4,23 +4,23 @@ import {Post} from "../../components/Post/Post";
 import {AddComment} from "../../components/AddComment/AddComment";
 import {CommentsBlock} from "../../components/CommentsBlock/CommentsBlock";
 import {IPost} from "../../redux";
-import {postsApi} from "../../global/api/posts";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
+import {postsApi} from "../../global/api";
+import ReactMarkdown from "react-markdown";
 
 export const FullPost = () => {
     const {id} = useParams<{ id: string }>()
     const [postData, setPostData] = useState<IPost>({} as IPost)
     const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
-        if (!id) return
-
-        postsApi.getPostById(id)
+        postsApi.getPostById(id as string)
             .then(({data}) => {
                 setPostData(data.data)
             })
             .catch(() => {
-
+                navigate("/")
             })
             .finally(() => {
                 setIsLoading(false)
@@ -51,9 +51,7 @@ export const FullPost = () => {
                 tags={postData.tags}
                 isFullPost
             >
-                <p>
-                    {postData.text}
-                </p>
+                <ReactMarkdown children={postData.text}/>
             </Post>
             <CommentsBlock
                 items={[

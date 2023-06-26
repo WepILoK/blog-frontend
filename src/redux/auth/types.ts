@@ -4,6 +4,7 @@ import {EnumStatus} from "../types";
 export interface IAuthSliceState {
     data: null | IUser
     status: EnumStatus
+    token: string | null
 }
 
 export interface IUser {
@@ -18,4 +19,11 @@ export interface IUser {
 export interface ILoginData {
     email: string
     password: string
+}
+
+export interface IRegisterData {
+    email: string
+    fullName: string
+    password: string
+    password2: string
 }

@@ -51,7 +51,7 @@ export const Post: React.FC<PostPropsType> = ({
             {imageUrl && (
                 <img
                     className={clsx(styles.image, {[styles.imageFull]: isFullPost})}
-                    src={imageUrl}
+                    src={`http://localhost:8888${imageUrl}`}
                     alt={title}
                 />
             )}

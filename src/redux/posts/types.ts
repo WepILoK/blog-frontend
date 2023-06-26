@@ -8,7 +8,7 @@ export interface IPost {
     imageUrl: string
     viewsCount: number
     createdAt: string
-    user: Pick<IUser, "avatarUrl" | "fullName">
+    user: Pick<IUser, "avatarUrl" | "fullName" | "_id">
     tags: string[]
 }
 
