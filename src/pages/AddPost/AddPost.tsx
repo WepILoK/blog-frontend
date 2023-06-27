@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useRef, useState} from 'react';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -7,20 +7,21 @@ import SimpleMDE from 'react-simplemde-editor';
 import 'easymde/dist/easymde.min.css';
 import styles from './AddPost.module.scss';
 import EasyMDE from "easymde";
-import {Link, Navigate, useNavigate} from "react-router-dom";
+import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
 import {useSelector} from "react-redux";
-import {selectAuthData} from "../../redux";
+import {IUser, selectAuthData} from "../../redux";
 import {postsApi} from "../../global/api";
 import {INewPostData} from "./AddPost.types";
 
 export const AddPost = () => {
     const isAuth = !!useSelector(selectAuthData)
     const navigate = useNavigate()
-
+    const {id} = useParams<string>()
     const [isLoading, setIsLoading] = useState(false)
     const [value, setValue] = React.useState('');
     const inputRef = useRef<HTMLInputElement>(null)
-    const [newPostData, setNewPostData] = useState<INewPostData>({} as INewPostData)
+    const [postData, setPostData] = useState<INewPostData>({} as INewPostData)
+    const [isEdit, setIsEdit] = useState(false)
 
     const handleChangeFile = async (event: ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) return
@@ -28,7 +29,7 @@ export const AddPost = () => {
         formData.append("image", event.target.files[0])
         postsApi.uploadImage(formData)
             .then(({data}) => {
-                setNewPostData((prevState) => ({
+                setPostData((prevState) => ({
                     ...prevState,
                     imageUrl: data.data.url
                 }))
@@ -41,7 +42,7 @@ export const AddPost = () => {
     };
 
     const onClickRemoveImage = () => {
-        setNewPostData(prevState => ({
+        setPostData(prevState => ({
             ...prevState,
             imageUrl: ""
         }))
@@ -51,7 +52,7 @@ export const AddPost = () => {
     };
 
     const onChange = React.useCallback((value: string) => {
-        setNewPostData((prevState => ({
+        setPostData((prevState => ({
             ...prevState,
             text: value
         })));
@@ -59,16 +60,33 @@ export const AddPost = () => {
 
     const onSubmit = () => {
         setIsLoading(true)
-        postsApi.createPost(newPostData)
-            .then(({data}) => {
-                navigate(`/posts/${data.data._id}`)
-            })
-            .catch(() => {
+        const requestData = {
+            ...postData,
+            tags: postData.tags.trim()
+        }
+        if (id) {
+            postsApi.updatePost({updatePost: requestData, id})
+                .then(() => {
+                    navigate(`/posts/${id}`)
+                })
+                .catch(() => {
 
-            })
-            .finally(() => {
-                setIsLoading(false)
-            })
+                })
+                .finally(() => {
+                    setIsLoading(false)
+                })
+        } else {
+            postsApi.createPost(requestData)
+                .then(({data}) => {
+                    navigate(`/posts/${data.data._id}`)
+                })
+                .catch(() => {
+
+                })
+                .finally(() => {
+                    setIsLoading(false)
+                })
+        }
     }
 
     const options = React.useMemo(
@@ -86,6 +104,28 @@ export const AddPost = () => {
         }),
         [],
     );
+
+    useEffect(() => {
+        if (id) {
+            postsApi.getPostById(id)
+                .then(({data}) => {
+                    const responsePost = data.data
+                    setPostData({
+                        text: responsePost.text,
+                        title: responsePost.title,
+                        imageUrl: responsePost.imageUrl,
+                        tags: responsePost.tags.join(", "),
+                    })
+                    setIsEdit(true)
+                })
+                .catch(() => {
+
+                })
+                .finally(() => {
+                    setIsLoading(false)
+                })
+        }
+    }, [])
 
     if (!isAuth && !localStorage.getItem("token")) {
         return <Navigate to={"/"}/>
@@ -108,12 +148,12 @@ export const AddPost = () => {
                    onChange={handleChangeFile}
                    hidden
             />
-            {newPostData.imageUrl && (
+            {postData.imageUrl && (
                 <>
                     <Button sx={{marginLeft: "15px"}} variant="contained" color="error" onClick={onClickRemoveImage}>
                         Удалить
                     </Button>
-                    <img className={styles.image} src={`http://localhost:8888${newPostData.imageUrl}`} alt="Uploaded"/>
+                    <img className={styles.image} src={`http://localhost:8888${postData.imageUrl}`} alt="Uploaded"/>
                 </>
             )}
             <br/>
@@ -121,9 +161,10 @@ export const AddPost = () => {
             <TextField
                 classes={{root: styles.title}}
                 variant="standard"
+                value={postData.title}
                 placeholder="Заголовок статьи..."
                 onChange={(event) => {
-                    setNewPostData(prevState => ({
+                    setPostData(prevState => ({
                             ...prevState,
                             title: event.target.value
                         })
@@ -134,9 +175,10 @@ export const AddPost = () => {
             <TextField
                 classes={{root: styles.tags}}
                 variant="standard"
+                value={postData.tags}
                 placeholder="Тэги"
                 onChange={(event) => {
-                    setNewPostData(prevState => ({
+                    setPostData(prevState => ({
                             ...prevState,
                             tags: event.target.value
                         })
@@ -144,7 +186,7 @@ export const AddPost = () => {
                 }}
                 fullWidth
             />
-            <SimpleMDE className={styles.editor} value={newPostData.text} onChange={onChange} options={options}/>
+            <SimpleMDE className={styles.editor} value={postData.text} onChange={onChange} options={options}/>
             <div className={styles.buttons}>
                 <Button
                     size="large"
@@ -152,9 +194,9 @@ export const AddPost = () => {
                     onClick={() => {
                         onSubmit()
                     }}
-                    disabled={isLoading && !newPostData.title || !newPostData.text || !newPostData.tags}
+                    disabled={isLoading && !postData.title || !postData.text || !postData.tags}
                 >
-                    Опубликовать
+                    {isEdit ? "Сохранить" : "Опубликовать"}
                 </Button>
                 <Link to="/">
                     <Button size="large">Отмена</Button>

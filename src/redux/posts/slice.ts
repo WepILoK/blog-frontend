@@ -1,5 +1,5 @@
 import {createSlice} from "@reduxjs/toolkit";
-import {fetchPosts, fetchTags} from "./asyncActions";
+import {deletePost, fetchPosts, fetchTags} from "./asyncActions";
 import {EnumStatus} from "../types";
 import {IPostSliceState} from "./types";
 
@@ -44,6 +44,9 @@ const postsSlice = createSlice({
             .addCase(fetchTags.rejected, (state) => {
                 state.tags.items = []
                 state.tags.status = EnumStatus.ERROR
+            })
+            .addCase(deletePost.fulfilled, (state, action) => {
+                state.posts.items = state.posts.items.filter(item => item._id !== action.meta.arg)
             })
     }
 })

@@ -11,6 +11,9 @@ import {UserInfo} from '../UserInfo';
 import {PostSkeleton} from './Skeleton';
 import {Link} from "react-router-dom";
 import {PostPropsType} from "./Post.types";
+import {useDispatch} from "react-redux";
+import {AppDispatch, deletePost} from "../../redux";
+
 
 export const Post: React.FC<PostPropsType> = ({
                                                   _id,
@@ -27,11 +30,14 @@ export const Post: React.FC<PostPropsType> = ({
                                                   isLoading,
                                                   isEditable,
                                               }) => {
+    const dispatch = useDispatch<AppDispatch>()
+
     if (isLoading) {
         return <PostSkeleton/>;
     }
 
     const onClickRemove = () => {
+        dispatch(deletePost(_id as string))
     };
 
     return (

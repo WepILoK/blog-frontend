@@ -21,7 +21,7 @@ export const CommentsBlock: React.FC<ICommentsBlock> = ({ items, children, isLoa
                 {isLoading ? (
                   <Skeleton variant="circular" width={40} height={40} />
                 ) : (
-                  <Avatar alt={obj.user.fullName} src={obj.user.avatarUrl} />
+                  <Avatar alt={obj.user.fullName} src={obj.user.avatarUrl ? obj.user.avatarUrl : ""} />
                 )}
               </ListItemAvatar>
               {isLoading ? (

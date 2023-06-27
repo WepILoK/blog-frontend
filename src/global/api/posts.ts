@@ -12,5 +12,8 @@ export const postsApi = {
     },
     createPost: (request: INewPostData): AxiosPromise<IResponse<IPost>> => {
         return axios.post("/posts", request)
+    },
+    updatePost: (request: {updatePost: INewPostData, id: string}): AxiosPromise<IResponse<IPost>> => {
+        return axios.patch(`/posts/${request.id}`, request.updatePost)
     }
 }

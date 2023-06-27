@@ -15,6 +15,11 @@
 .image {
   margin-top: 15px;
   width: 100%;
+  min-height: 300px;
+  max-height: 500px;
+  height: auto;
+  object-fit: cover;
+
 }
 
 .tags {
